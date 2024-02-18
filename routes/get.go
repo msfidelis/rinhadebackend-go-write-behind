@@ -48,7 +48,7 @@ func ExtratoHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Checa no cache em memória da aplicação se o cliente existe
 	_, found := cache.Get("cliente:" + clienteID)
-	if found == false {
+	if !found {
 		http.Error(w, "", http.StatusNotFound)
 		return
 	}
@@ -58,13 +58,13 @@ func ExtratoHandler(w http.ResponseWriter, r *http.Request) {
 	// Recupera o saldo e o limite na camada de cache
 	go func() {
 		defer wg.Done()
-		response.Saldo.Limite, response.Saldo.Total, errSaldo = utils.RecuperarSaldoELimite(ctx, rdb, clienteID)
+		response.Saldo.Limite, response.Saldo.Total, errSaldo = utils.RecuperarSaldoELimite(r.Context(), rdb, clienteID)
 	}()
 
-	// Recupera as ultimas transações do client
+	// Recupera as ultimas transações do cliente
 	go func() {
 		defer wg.Done()
-		response.UltimasTransacoes, errTransacoes = utils.RecuperarTransacoes(ctx, rdb, clienteID)
+		response.UltimasTransacoes, errTransacoes = utils.RecuperarTransacoes(r.Context(), rdb, clienteID)
 	}()
 
 	wg.Wait()

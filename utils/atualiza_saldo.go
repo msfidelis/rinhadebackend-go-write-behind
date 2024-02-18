@@ -24,7 +24,8 @@ func AtualizarSaldo(ctx context.Context, rdb *redis.Client, clienteID string, va
 		return 0, 0, false, fmt.Errorf("erro ao converter limite para float: %v", err)
 	}
 
-	if valores[1] != nil { // Verifica se o saldo existe
+	// Verifica se o saldo existe
+	if valores[1] != nil {
 		saldo, err = strconv.ParseFloat(valores[1].(string), 64)
 		if err != nil {
 			return 0, 0, false, fmt.Errorf("erro ao converter saldo para float: %v", err)
@@ -54,19 +55,14 @@ func AtualizarSaldo(ctx context.Context, rdb *redis.Client, clienteID string, va
 
 // Recupera o saldo e o limite do cliente informado da camada de cache
 func RecuperarSaldoELimite(ctx context.Context, rdb *redis.Client, clienteID string) (float64, float64, error) {
-	// Busca o limite do cliente no Redis
-	limiteStr, err := rdb.Get(ctx, "limite:"+clienteID).Result()
-	if err != nil {
-		return 0, 0, err
-	}
-	limite, _ := strconv.ParseFloat(limiteStr, 64)
 
-	// Busca o saldo atual do cliente no Redis
-	saldoStr, err := rdb.Get(ctx, "saldo:"+clienteID).Result()
+	valores, err := rdb.MGet(ctx, "limite:"+clienteID, "saldo:"+clienteID).Result()
 	if err != nil {
-		saldoStr = "0" // Assume saldo 0 se não encontrado
+		return 0, 0, fmt.Errorf("erro ao recuperar dados do cliente %s: %v", clienteID, err)
 	}
-	saldo, _ := strconv.ParseFloat(saldoStr, 64)
+
+	limite, _ := strconv.ParseFloat(valores[0].(string), 64)
+	saldo, _ := strconv.ParseFloat(valores[1].(string), 64)
 
 	return limite, saldo, nil
 }

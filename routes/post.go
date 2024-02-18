@@ -40,11 +40,11 @@ func TransacaoHandler(w http.ResponseWriter, r *http.Request) {
 	clienteID := string(pathSegments[2])
 
 	rdb := utils.GetRedisClient()
+	cache := utils.GetCacheInstance()
 
-	// Checa se o cliente existe
-	cliente, err := rdb.Get(ctx, "cliente:"+clienteID).Result()
-	if err != nil || cliente == "" {
-		fmt.Println(err)
+	// Checa no cache em memória da aplicação se o cliente existe
+	_, found := cache.Get("cliente:" + clienteID)
+	if found == false {
 		http.Error(w, "", http.StatusNotFound)
 		return
 	}

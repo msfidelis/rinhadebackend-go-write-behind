@@ -14,6 +14,7 @@ func RedisMigration() {
 	ctx := context.Background()
 	rdb := utils.GetRedisClient()
 	db := utils.GetDB()
+	cache := utils.GetCacheInstance()
 
 	queryTransacoes := `select id_cliente, saldo, limite from clientes order by id_cliente`
 	rows, err := db.Query(queryTransacoes)
@@ -37,6 +38,10 @@ func RedisMigration() {
 			fmt.Printf("[%s] Erro atualizar o cliente do database principal para o cache: %v\n", consumerName, err)
 		}
 		fmt.Printf("[%s] Cliente atualizado do database principal para o cache: %v\n", consumerName, t.ID)
+
+		// Atualiza os clientes em memória local
+		cache.Set("cliente:"+t.ID, t.ID)
+		fmt.Printf("[%s] Salvando o id do cliente na memória local: %v\n", consumerName, t.ID)
 
 		// Atualiza o saldo no Redis
 		err = rdb.Set(ctx, "saldo:"+t.ID, fmt.Sprintf("%s", t.Saldo), 0).Err()

@@ -16,7 +16,7 @@ type redisSingleton struct {
 var instance *redisSingleton
 var once sync.Once
 
-// Retorna o singleton da instancia do Redis
+// Retorna a conexão com o redis utilizando uma estratégia de Singleton
 func GetRedisClient() *redis.Client {
 	once.Do(func() {
 

@@ -9,6 +9,8 @@ type ResponseError struct {
 	Message string `json:"message"`
 }
 
+// Handler simples de erros http. Escrito na mão pois não foi utilizado
+// um microframework.
 func HttpError(w http.ResponseWriter, message string, status int64) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(int(status))

@@ -11,6 +11,7 @@ import (
 var onceDB sync.Once
 var dbInstance *sql.DB
 
+// Retorna a conexão com o database em utilizando uma estratégia de Singleton
 func GetDB() *sql.DB {
 	onceDB.Do(func() {
 		var err error

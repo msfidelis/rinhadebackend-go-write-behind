@@ -1,5 +1,7 @@
 # Projeto da Rinha de Backend 2024 - Otimizações de Escrita e Leitura com Cache Write-Behind e Commands assincronos. 
 
+> Isso é claramente um semi-CRUD com muita overengineering... 
+
 ## Tecnologias Utilizadas
 
 ![Topologia](.github/images/Topologia.drawio.png)

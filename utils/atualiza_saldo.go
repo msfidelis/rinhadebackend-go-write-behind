@@ -3,7 +3,9 @@ package utils
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"log"
 	"main/entities"
 	"strconv"
 
@@ -67,19 +69,22 @@ func RecuperarSaldoELimite(ctx context.Context, rdb *redis.Client, clienteID str
 	return limite, saldo, nil
 }
 
-// Recupera as ultimas 10 transações do cliente da camada de cache
+// RecuperarTransacoes recupera as últimas 10 transações do cliente da camada de cache
 func RecuperarTransacoes(ctx context.Context, rdb *redis.Client, clienteID string) ([]entities.Transacao, error) {
 	var transacoes []entities.Transacao
+
 	transacoesCache, err := rdb.Get(ctx, "extrato:"+clienteID).Result()
 	if err != nil {
-		fmt.Println(err)
-		return transacoes, err
+		if errors.Is(err, redis.Nil) {
+			return transacoes, nil
+		}
+		log.Printf("Erro ao recuperar transações do cache para cliente %s: %v\n", clienteID, err)
+		return nil, err
 	}
 
-	err = json.Unmarshal([]byte(transacoesCache), &transacoes)
-	if err != nil {
-		fmt.Println(err)
-		return transacoes, err
+	if err = json.Unmarshal([]byte(transacoesCache), &transacoes); err != nil {
+		log.Printf("Erro ao deserializar transações para cliente %s: %v\n", clienteID, err)
+		return nil, err
 	}
 
 	return transacoes, nil

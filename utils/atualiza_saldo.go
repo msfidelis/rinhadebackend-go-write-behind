@@ -10,44 +10,43 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// Atualiza o saldo com a nova transação na camada de cache, e retorna o limite e o novo saldo
-func AtualizarSaldo(ctx context.Context, rdb *redis.Client, clienteID string, valorTransacao float64, tipo string) (float64, float64, bool, error) {
+func AtualizarSaldo(ctx context.Context, rdb *redis.Client, clienteID string, valorTransacao float64, tipo string) (limite float64, saldoAtualizado float64, limiteExcedido bool, err error) {
+	var saldo float64
 
-	actionName := "AtualizarSaldo"
-	// Busca o limite do cliente no Redis
-
-	fmt.Printf("[%s] Recuperando Limite\n", actionName)
-	limiteStr, err := rdb.Get(ctx, "limite:"+clienteID).Result()
+	// Recupera o limite e o saldo atual do cliente de forma eficiente
+	valores, err := rdb.MGet(ctx, "limite:"+clienteID, "saldo:"+clienteID).Result()
 	if err != nil {
-		fmt.Printf("[%s] Erro ao recuperar o limite do cliente %s: %s\n", actionName, clienteID, err)
-		return 0, 0, false, err
+		return 0, 0, false, fmt.Errorf("erro ao recuperar dados do cliente %s: %v", clienteID, err)
 	}
-	limite, _ := strconv.ParseFloat(limiteStr, 64)
 
-	// Busca o saldo atual do cliente no Redis
-	saldoStr, err := rdb.Get(ctx, "saldo:"+clienteID).Result()
+	limite, err = strconv.ParseFloat(valores[0].(string), 64)
 	if err != nil {
-		saldoStr = "0" // Assume saldo 0 se não encontrado
+		return 0, 0, false, fmt.Errorf("erro ao converter limite para float: %v", err)
 	}
-	saldo, _ := strconv.ParseFloat(saldoStr, 64)
 
-	// Verifica o tipo de transação e ajusta o saldo conforme necessário
-	if tipo == "c" {
-		saldo += valorTransacao // Incrementa o saldo para créditos
-	} else if tipo == "d" {
-		saldo -= valorTransacao // Decrementa o saldo para débitos
-	} else {
+	if valores[1] != nil { // Verifica se o saldo existe
+		saldo, err = strconv.ParseFloat(valores[1].(string), 64)
+		if err != nil {
+			return 0, 0, false, fmt.Errorf("erro ao converter saldo para float: %v", err)
+		}
+	}
+
+	switch tipo {
+	case "c":
+		saldo += valorTransacao
+	case "d":
+		saldo -= valorTransacao
+	default:
 		return 0, 0, false, fmt.Errorf("tipo de transação inválido: %s", tipo)
 	}
 
-	if saldo < (limite * -1) {
-		return 0, 0, true, fmt.Errorf("Transação excede o limite do cliente")
+	if saldo < -limite {
+		return limite, saldo, true, nil // Indica que o limite seria excedido
 	}
 
 	// Atualiza o saldo no Redis
-	err = rdb.Set(ctx, "saldo:"+clienteID, fmt.Sprintf("%f", saldo), 0).Err()
-	if err != nil {
-		return limite, saldo, false, err
+	if err = rdb.Set(ctx, "saldo:"+clienteID, fmt.Sprintf("%f", saldo), 0).Err(); err != nil {
+		return limite, saldo, false, fmt.Errorf("erro ao atualizar saldo no Redis: %v", err)
 	}
 
 	return limite, saldo, false, nil

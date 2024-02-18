@@ -6,12 +6,12 @@
 
 ![Topologia](.github/images/Topologia.drawio.png)
 
-| Tecnologia  | Versão  | Descrição                                             |
-|-------------|---------|-------------------------------------------------------|
-| Envoy Proxy | v1.29.1 | Usado como proxy reverso e load balancer.             |
-| Golang      | 1.21    | Linguagem de programação para o backend.              |
-| Redis       | 7.2.4   | Armazenamento em cache para otimização.               |
-| Postgres    | 16      | Banco de dados relacional para persistência de dados. |
+| Tecnologia  | Versão  | Descrição                                                                     |
+|-------------|---------|-------------------------------------------------------------------------------|
+| Envoy Proxy | v1.29.1 | Usado como proxy reverso e load balancer.                                     |
+| Golang      | 1.21    | Linguagem de programação para o backend.                                      |
+| Redis       | 7.2.4   | Armazenamento em cache para otimização e troca de mensagens entre listeners.  |
+| Postgres    | 16      | Banco de dados relacional para persistência de dados.                         |
 
 ## Padrões Utilizados
 

@@ -28,7 +28,7 @@ func GetRedisClient() *redis.Client {
 			Addr:     fmt.Sprintf("%s:%s", host, port),
 			Password: "",
 			DB:       0,
-			PoolSize: 10,
+			PoolSize: 100,
 		})
 	})
 	return instance.client

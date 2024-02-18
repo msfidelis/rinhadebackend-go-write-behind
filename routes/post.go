@@ -24,6 +24,8 @@ var ctx = context.Background()
 
 func TransacaoHandler(w http.ResponseWriter, r *http.Request) {
 
+	featureName := "NewTransaction"
+
 	if r.Method != "POST" {
 		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
 		return
@@ -46,6 +48,7 @@ func TransacaoHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "", http.StatusNotFound)
 		return
 	}
+	fmt.Printf("[%s] cliente encontrado: %v\n", featureName, clienteID)
 
 	// Decode da Transação -> Maior ofensor de performance até o momento
 	var transacao Request
@@ -57,24 +60,29 @@ func TransacaoHandler(w http.ResponseWriter, r *http.Request) {
 	// Atualização de saldo
 	limite, saldo, semlimite, err := utils.AtualizarSaldo(ctx, rdb, clienteID, transacao.Valor, transacao.Tipo)
 	if semlimite {
-		utils.HttpError(w, "cliente sem limite disponível", http.StatusUnprocessableEntity)
+		fmt.Printf("[%s] Cliente sem limite disponível: %w\n", featureName, clienteID)
+		utils.HttpError(w, "Cliente sem limite disponível", http.StatusUnprocessableEntity)
 		return
 	}
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("[%s] Erro ao processar a transação: %w\n", featureName, err)
 		utils.HttpError(w, "Erro ao processar a transação", http.StatusInternalServerError)
 		return
 	}
 
+	fmt.Printf("[%s] Liberando resposta HTTP\n", featureName)
 	resposta := Resposta{Limite: limite, Saldo: saldo}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resposta)
 
+	// Adicionando mensagem a queue de Lazy Writting
 	message := fmt.Sprintf("%v:%v:%v:%v", clienteID, transacao.Descricao, transacao.Tipo, transacao.Valor)
 
-	// Adicionando mensagem a queue de Lazy Writting
+	fmt.Printf("[%s] Adicionando mensagem na fila de persistência: %v\n", featureName, message)
+
 	_, err = rdb.LPush(ctx, "transactions", message).Result()
 	if err != nil {
-		fmt.Printf("error pushing to queue: %w", err)
+		fmt.Printf("[%s] Erro ao publicar a mensagem na fila de persistência: %v\n", featureName, err)
 	}
+	fmt.Printf("[%s] Fluxo sincrono da transação finalizado: %v\n", featureName, message)
 }

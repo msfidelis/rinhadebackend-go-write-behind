@@ -9,6 +9,8 @@ import (
 	"main/utils"
 )
 
+// Este listener captura eventos de insert de registros através de uma fila de comando
+// De forma proativa, as ultimas 10 transações do cliente informado são colocadas em cache
 func TransactionsExtratoCache(ctx context.Context) {
 
 	consumerName := "TransactionsExtratoCache"

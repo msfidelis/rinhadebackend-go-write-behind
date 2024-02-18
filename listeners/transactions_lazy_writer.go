@@ -8,6 +8,9 @@ import (
 	"time"
 )
 
+// Esse listener captura os eventos da fila do redis para inserir as transações
+// de crédito e débito no database principal. Após a inserção ele estimula os eventos/comandos
+// de consistência de saldo e da alocação das ultimas transações em cache
 func TransactionsLazyWritting(ctx context.Context) {
 
 	consumerName := "TransactionsLazyWritting"

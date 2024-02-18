@@ -10,6 +10,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+// Atualiza o saldo com a nova transação na camada de cache, e retorna o limite e o novo saldo
 func AtualizarSaldo(ctx context.Context, rdb *redis.Client, clienteID string, valorTransacao float64, tipo string) (float64, float64, bool, error) {
 
 	actionName := "AtualizarSaldo"
@@ -52,6 +53,7 @@ func AtualizarSaldo(ctx context.Context, rdb *redis.Client, clienteID string, va
 	return limite, saldo, false, nil
 }
 
+// Recupera o saldo e o limite do cliente informado da camada de cache
 func RecuperarSaldoELimite(ctx context.Context, rdb *redis.Client, clienteID string) (float64, float64, error) {
 	// Busca o limite do cliente no Redis
 	limiteStr, err := rdb.Get(ctx, "limite:"+clienteID).Result()
@@ -70,6 +72,7 @@ func RecuperarSaldoELimite(ctx context.Context, rdb *redis.Client, clienteID str
 	return limite, saldo, nil
 }
 
+// Recupera as ultimas 10 transações do cliente da camada de cache
 func RecuperarTransacoes(ctx context.Context, rdb *redis.Client, clienteID string) ([]entities.Transacao, error) {
 	var transacoes []entities.Transacao
 	transacoesCache, err := rdb.Get(ctx, "extrato:"+clienteID).Result()

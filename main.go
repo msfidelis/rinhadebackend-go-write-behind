@@ -27,15 +27,21 @@ func main() {
 	routines.DatabaseMigration()
 	routines.RedisMigration()
 
-	// Listeners
+	//Aplicando as estratégias de Write Behind
+	// através de listeners de eventos em background
+
+	// Listeners de Lazy Writting do Cache para o Databas
 	go listeners.TransactionsLazyWritting(ctx)
 	go listeners.TransactionsLazyWritting(ctx)
 
+	// Listeners de Atualização do database para o Cache
 	go listeners.TransactionsExtratoCache(ctx)
 	go listeners.TransactionsExtratoCache(ctx)
 
+	// Listeners de Lazy Writter para atualização do saldo
 	go listeners.TransactionsSaldoLazyWriter(ctx)
 
+	// Utilizando o HandleFunc do Go para otimização de performance
 	http.HandleFunc("/clientes/", routes.ClientesHandler)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

@@ -7,6 +7,8 @@ import (
 	"strconv"
 )
 
+// Este listener de consistência captura a manipulação do saldo em cache
+// e sincroniza o mesmo com o database principal
 func TransactionsSaldoLazyWriter(ctx context.Context) {
 	consumerName := "TransactionsSaldoLazyWriter"
 	fmt.Printf("[%s] Iniciando Consumer de Lazy Writting Transactions\n", consumerName)

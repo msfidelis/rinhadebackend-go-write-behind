@@ -2,6 +2,8 @@
 
 ## Tecnologias Utilizadas
 
+![Topologia](.github/images/Topologia.drawio.png)
+
 | Tecnologia  | Versão  | Descrição                                             |
 |-------------|---------|-------------------------------------------------------|
 | Envoy Proxy | v1.29.1 | Usado como proxy reverso e load balancer.             |

@@ -72,6 +72,8 @@ func TransacaoHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("[%s] Liberando resposta HTTP\n", featureName)
 	resposta := Resposta{Limite: limite, Saldo: saldo}
+
+	// Response HTTP da escrita
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resposta)
 

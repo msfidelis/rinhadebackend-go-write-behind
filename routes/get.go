@@ -24,11 +24,13 @@ type Saldo struct {
 
 func ExtratoHandler(w http.ResponseWriter, r *http.Request) {
 
+	featureName := "Extrato"
+
 	var wg sync.WaitGroup
 	var response ExtratoResponse
 	var limite, saldo float64
 	var transacoes []entities.Transacao
-	var err1, err2 error
+	var errSaldo, errTransacoes error
 
 	if r.Method != "GET" {
 		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
@@ -53,30 +55,35 @@ func ExtratoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Printf("[%s] cliente encontrado: %v\n", featureName, clienteID)
+
 	wg.Add(2)
 
+	fmt.Printf("[%s] Recuperando saldo da camada de cache: %v\n", featureName, clienteID)
 	// Recupera o saldo e o limite na camada de cache
 	go func() {
 		defer wg.Done()
-		limite, saldo, err1 = utils.RecuperarSaldoELimite(ctx, rdb, clienteID)
+		limite, saldo, errSaldo = utils.RecuperarSaldoELimite(ctx, rdb, clienteID)
 	}()
 
+	fmt.Printf("[%s] Recuperando transações da camada de cache: %v\n", featureName, clienteID)
 	// Recupera as ultimas transações do client
 	go func() {
 		defer wg.Done()
-		transacoes, err2 = utils.RecuperarTransacoes(ctx, rdb, clienteID)
+		transacoes, errTransacoes = utils.RecuperarTransacoes(ctx, rdb, clienteID)
 	}()
+	fmt.Printf("[%s] Transações recuperadas: %v\n", featureName, clienteID)
 
 	wg.Wait()
 
-	if err1 != nil {
-		fmt.Println("Erro ao recuperar saldo e limite:", err1)
+	if errSaldo != nil {
+		fmt.Printf("[%s] Erro ao recuperar saldo e limite da camada de cache: %v\n", featureName, err)
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
 
-	if err2 != nil {
-		fmt.Println("Erro ao recuperar as ultimas transações:", err1)
+	if errTransacoes != nil {
+		fmt.Printf("[%s] Erro ao recuperar transações da camada de cache: %v\n", featureName, errTransacoes)
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}

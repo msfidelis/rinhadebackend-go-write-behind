@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   envoy:
-    image: envoyproxy/envoy:v1.18.3
+    image: envoyproxy/envoy:v1.29.1
     container_name: proxy
     volumes:
       - ./envoy.yaml:/etc/envoy/envoy.yaml
@@ -19,7 +19,7 @@ services:
       - api-02
 
   redis:
-    image: redis:latest
+    image: redis:7.2.4
     container_name: redis
     ports:
       - "6379:6379"
@@ -34,7 +34,7 @@ services:
       - postgres
 
   postgres:
-    image: postgres:latest
+    image: postgres:16
     container_name: db
     environment:
       POSTGRES_DB: rinhadebackend

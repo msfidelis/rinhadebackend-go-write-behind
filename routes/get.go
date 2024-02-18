@@ -28,8 +28,6 @@ func ExtratoHandler(w http.ResponseWriter, r *http.Request) {
 
 	var wg sync.WaitGroup
 	var response ExtratoResponse
-	var limite, saldo float64
-	var transacoes []entities.Transacao
 	var errSaldo, errTransacoes error
 
 	if r.Method != "GET" {
@@ -54,31 +52,25 @@ func ExtratoHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "", http.StatusNotFound)
 		return
 	}
-	fmt.Printf("[%s] cliente encontrado: %v\n", featureName, clienteID)
-
-	fmt.Printf("[%s] cliente encontrado: %v\n", featureName, clienteID)
 
 	wg.Add(2)
 
-	fmt.Printf("[%s] Recuperando saldo da camada de cache: %v\n", featureName, clienteID)
 	// Recupera o saldo e o limite na camada de cache
 	go func() {
 		defer wg.Done()
-		limite, saldo, errSaldo = utils.RecuperarSaldoELimite(ctx, rdb, clienteID)
+		response.Saldo.Limite, response.Saldo.Total, errSaldo = utils.RecuperarSaldoELimite(ctx, rdb, clienteID)
 	}()
 
-	fmt.Printf("[%s] Recuperando transações da camada de cache: %v\n", featureName, clienteID)
 	// Recupera as ultimas transações do client
 	go func() {
 		defer wg.Done()
-		transacoes, errTransacoes = utils.RecuperarTransacoes(ctx, rdb, clienteID)
+		response.UltimasTransacoes, errTransacoes = utils.RecuperarTransacoes(ctx, rdb, clienteID)
 	}()
-	fmt.Printf("[%s] Transações recuperadas: %v\n", featureName, clienteID)
 
 	wg.Wait()
 
 	if errSaldo != nil {
-		fmt.Printf("[%s] Erro ao recuperar saldo e limite da camada de cache: %v\n", featureName, err)
+		fmt.Printf("[%s] Erro ao recuperar saldo e limite da camada de cache: %v\n", featureName, errSaldo)
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
@@ -89,10 +81,7 @@ func ExtratoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.Saldo.Total = saldo
-	response.Saldo.Limite = limite
 	response.Saldo.DataExtrato = time.Now().UTC().Format(time.RFC3339Nano)
-	response.UltimasTransacoes = transacoes
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)

@@ -22,9 +22,11 @@ O padrão Lazy Writing (Write-Behind) foi utilizado para otimizar as operações
 - Reduzir a carga no banco de dados principal, distribuindo as operações de escrita ao longo do tempo.
 - Melhorar a resposta ao usuário, pois as operações de escrita são concluídas mais rapidamente no cache.
 
+No dia 19/02/2024 publiquei um 9artigo de System Design sobre Cache](https://fidelissauro.dev/caching/), decidi implementar os patterns que estudei para escrevê-lo nesse desafio.  
+
 #### Contras encontrados 
 
-Ao estudar a implementação do Write-Behind, os desafios encontrados foram a necessidade de construção de diversos processos em backgroud para manter a camada de consistência confiável. 
+Ao estudar a implementação do Write-Behind, os desafios encontrados foram a necessidade de construção de diversos processos em backgroud para manter a camada de consistência confiável, e também foi um pouco desafiador lidar com a escrita da mesma chave em cache de forma concorrente.  
 
 ### HttpFunc do Go
 

@@ -51,7 +51,7 @@ services:
           memory: "150M"
 
   api-01:
-    image: fidelissauro/rinha-2024-go-write-behind:latest
+    image: fidelissauro/rinha-2024-go-write-behind:amd64
     container_name: api-01-rinha
     ports:
       - 8081:8080
@@ -73,7 +73,7 @@ services:
       - postgres
 
   api-02:
-    image: fidelissauro/rinha-2024-go-write-behind:latest
+    image: fidelissauro/rinha-2024-go-write-behind:amd64
     container_name: api-02-rinha
     ports:
       - 8082:8080

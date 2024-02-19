@@ -24,6 +24,7 @@ sudo mv gatling-* /opt/gatling
 
 echo 'export PATH=$PATH:/opt/gatling/bin' >> ~/.bashrc
 echo 'export RESULTS_WORKSPACE=/tmp/gatling/results' >> ~/.bashrc
+echo 'export GATLING_HOME=/opt/gatling' >> ~/.bashrc
 echo 'export GATLING_BIN_DIR=/opt/gatling/bin' >> ~/.bashrc
 echo 'export GATLING_WORKSPACE=/tmp/gatling' >> ~/.bashrc
 

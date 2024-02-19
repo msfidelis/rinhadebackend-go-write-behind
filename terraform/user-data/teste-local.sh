@@ -16,7 +16,7 @@ runGatling() {
 
 startTest() {
     mkdir -p $GATLING_HOME/user-files/simulations/rinhadebackend/
-    cp ../user-files/simulations/rinhadebackend/RinhaBackendCrebitosSimulation.scala $GATLING_HOME/user-files/simulations/rinhadebackend/
+    cp ../../gatling/user-files/simulations/rinhadebackend/RinhaBackendCrebitosSimulation.scala $GATLING_HOME/user-files/simulations/rinhadebackend/
     for i in {1..20}; do
         # 2 requests to wake the 2 api instances up :)
         curl --fail http://localhost:9999/clientes/1/extrato && \

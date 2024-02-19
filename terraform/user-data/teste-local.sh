@@ -3,6 +3,7 @@
 # Use este script para executar testes locais
 
 RESULTS_WORKSPACE="/tmp/gatling/results"
+GATLING_HOME="/opt/gatling/"
 GATLING_BIN_DIR=/opt/gatling/bin
 GATLING_WORKSPACE="/tmp/gatling"
 
@@ -14,7 +15,8 @@ runGatling() {
 }
 
 startTest() {
-    cp RinhaBackendCrebitosSimulation.scala /opt/gatling/
+    mkdir -p $GATLING_HOME/user-files/simulations/rinhadebackend/
+    cp ../user-files/simulations/rinhadebackend/RinhaBackendCrebitosSimulation.scala $GATLING_HOME/user-files/simulations/rinhadebackend/
     for i in {1..20}; do
         # 2 requests to wake the 2 api instances up :)
         curl --fail http://localhost:9999/clientes/1/extrato && \

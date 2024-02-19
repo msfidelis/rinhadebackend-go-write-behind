@@ -7,6 +7,7 @@ import (
 	"main/routes"
 	"main/routines"
 	"net/http"
+	"time"
 )
 
 type Transacao struct {
@@ -23,6 +24,9 @@ type Resposta struct {
 var ctx = context.Background()
 
 func main() {
+
+	time.Sleep(10 * time.Second)
+
 	// Migrations
 	routines.DatabaseMigration()
 	routines.RedisMigration()

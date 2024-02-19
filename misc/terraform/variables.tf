@@ -11,5 +11,5 @@ variable "ami" {
 }
 
 variable "instance_type" {
-  default = "t4g.small"
+  default = "c6a.large"
 }

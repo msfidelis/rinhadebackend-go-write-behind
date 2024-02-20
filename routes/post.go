@@ -37,6 +37,7 @@ func TransacaoHandler(w http.ResponseWriter, r *http.Request) {
 	clienteID := string(pathSegments[2])
 
 	rdb := utils.GetRedisClient()
+	db := utils.GetDB()
 	cache := utils.GetCacheInstance()
 
 	// Checa no cache em memória da aplicação se o cliente existe
@@ -54,7 +55,8 @@ func TransacaoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Atualização de saldo
-	limite, saldo, semlimite, err := utils.AtualizarSaldo(r.Context(), rdb, clienteID, transacao.Valor, transacao.Tipo)
+	// limite, saldo, semlimite, err := utils.AtualizarSaldo(r.Context(), rdb, clienteID, transacao.Valor, transacao.Tipo)
+	limite, saldo, semlimite, err := utils.AtualizarSaldo(r.Context(), db, clienteID, transacao.Valor, transacao.Tipo)
 	if semlimite {
 		fmt.Printf("[%s] Cliente sem limite disponível: %w\n", featureName, clienteID)
 		utils.HttpError(w, "Cliente sem limite disponível", http.StatusUnprocessableEntity)

@@ -2,39 +2,30 @@ package utils
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"main/entities"
 	"strconv"
-	"sync"
 
 	"github.com/redis/go-redis/v9"
 )
 
-func AtualizarSaldo(ctx context.Context, rdb *redis.Client, clienteID string, valorTransacao float64, tipo string) (limite float64, saldoAtualizado float64, limiteExcedido bool, err error) {
+func AtualizarSaldo(ctx context.Context, db *sql.DB, clienteID string, valorTransacao float64, tipo string) (limite float64, saldoAtualizado float64, limiteExcedido bool, err error) {
+	tx, err := db.BeginTx(ctx, nil)
+	rdb := GetRedisClient()
+
+	if err != nil {
+		return 0, 0, false, fmt.Errorf("erro ao iniciar transação: %v", err)
+	}
+
 	var saldo float64
-	var mutex sync.Mutex
-
-	mutex.Lock()
-	// Recupera o limite e o saldo atual do cliente de forma eficiente
-	valores, err := rdb.MGet(ctx, "limite:"+clienteID, "saldo:"+clienteID).Result()
+	err = tx.QueryRowContext(ctx, "SELECT limite, saldo FROM clientes WHERE id_cliente = $1", clienteID).Scan(&limite, &saldo)
 	if err != nil {
+		tx.Rollback()
 		return 0, 0, false, fmt.Errorf("erro ao recuperar dados do cliente %s: %v", clienteID, err)
-	}
-
-	limite, err = strconv.ParseFloat(valores[0].(string), 64)
-	if err != nil {
-		return 0, 0, false, fmt.Errorf("erro ao converter limite para float: %v", err)
-	}
-
-	// Verifica se o saldo existe
-	if valores[1] != nil {
-		saldo, err = strconv.ParseFloat(valores[1].(string), 64)
-		if err != nil {
-			return 0, 0, false, fmt.Errorf("erro ao converter saldo para float: %v", err)
-		}
 	}
 
 	switch tipo {
@@ -43,18 +34,31 @@ func AtualizarSaldo(ctx context.Context, rdb *redis.Client, clienteID string, va
 	case "d":
 		saldo -= valorTransacao
 	default:
+		tx.Rollback()
 		return 0, 0, false, fmt.Errorf("tipo de transação inválido: %s", tipo)
 	}
 
 	if saldo < -limite {
-		return limite, saldo, true, nil // Indica que o limite seria excedido
+		tx.Rollback()
+		return limite, saldo, true, fmt.Errorf("transação excede o limite do cliente")
 	}
 
-	// Atualiza o saldo no Redis
+	_, err = tx.ExecContext(ctx, "UPDATE clientes SET saldo = $1 WHERE id_cliente = $2", saldo, clienteID)
+	if err != nil {
+		tx.Rollback()
+		return 0, 0, false, fmt.Errorf("erro ao atualizar saldo no banco de dados: %v", err)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return 0, 0, false, fmt.Errorf("erro ao finalizar transação: %v", err)
+	}
 	if err = rdb.Set(ctx, "saldo:"+clienteID, fmt.Sprintf("%f", saldo), 0).Err(); err != nil {
 		return limite, saldo, false, fmt.Errorf("erro ao atualizar saldo no Redis: %v", err)
 	}
-	mutex.Unlock()
+	if err = rdb.Set(ctx, "limite:"+clienteID, fmt.Sprintf("%f", limite), 0).Err(); err != nil {
+		return limite, saldo, false, fmt.Errorf("erro ao atualizar saldo no Redis: %v", err)
+	}
 	return limite, saldo, false, nil
 }
 

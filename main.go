@@ -8,7 +8,6 @@ import (
 	"main/routes"
 	"main/routines"
 	"net/http"
-	"time"
 )
 
 type Transacao struct {
@@ -26,7 +25,7 @@ var ctx = context.Background()
 
 func main() {
 	fmt.Println("Warm Databases")
-	time.Sleep(10 * time.Second)
+	// time.Sleep(10 * time.Second)
 
 	// Migrations
 	routines.DatabaseMigration()

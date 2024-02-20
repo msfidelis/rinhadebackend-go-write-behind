@@ -65,3 +65,24 @@ As operações de leitura somente consultam os dados que são resultantes das op
 
 ![Escrita](.github/images/Leitura.drawio.png)
 
+
+### UPDATES
+
+#### 19/02/2024 - Race Condition para Atualização do Cache
+
+Foram encontrados alguns desafios para update concorrente do saldo em memória. A quantidade de `KO` dos testes foi muito alta por conta de insconsistência esperada do cache. Achei bem ruim kkkkkkkkkkkkkk. 
+
+Antes de deixar a recuperação e atualização do saldo dentro de uma transaction, vou tentar adicionar um Mutex no SET no redis para redizir as race conditions. 
+
+
+##### 20/02/2024 - Race Conditions para Atualização do Cache - Tratamento do Saldo Transacional
+
+### Field Notes
+
+#### Build da Imagem Amd64
+
+```bash
+docker buildx build --platform linux/amd64 --load --tag rinha-2024-amd64 .
+docker tag rinha-2024-amd64 fidelissauro/rinha-2024-go-write-behind:amd64
+docker push fidelissauro/rinha-2024-go-write-behind:amd64
+```

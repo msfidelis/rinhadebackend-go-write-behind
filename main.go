@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"main/listeners"
 	"main/routes"
@@ -24,7 +25,7 @@ type Resposta struct {
 var ctx = context.Background()
 
 func main() {
-
+	fmt.Println("Warm Databases")
 	time.Sleep(10 * time.Second)
 
 	// Migrations

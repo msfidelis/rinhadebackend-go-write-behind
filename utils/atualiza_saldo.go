@@ -8,13 +8,16 @@ import (
 	"log"
 	"main/entities"
 	"strconv"
+	"sync"
 
 	"github.com/redis/go-redis/v9"
 )
 
 func AtualizarSaldo(ctx context.Context, rdb *redis.Client, clienteID string, valorTransacao float64, tipo string) (limite float64, saldoAtualizado float64, limiteExcedido bool, err error) {
 	var saldo float64
+	var mutex sync.Mutex
 
+	mutex.Lock()
 	// Recupera o limite e o saldo atual do cliente de forma eficiente
 	valores, err := rdb.MGet(ctx, "limite:"+clienteID, "saldo:"+clienteID).Result()
 	if err != nil {
@@ -51,7 +54,7 @@ func AtualizarSaldo(ctx context.Context, rdb *redis.Client, clienteID string, va
 	if err = rdb.Set(ctx, "saldo:"+clienteID, fmt.Sprintf("%f", saldo), 0).Err(); err != nil {
 		return limite, saldo, false, fmt.Errorf("erro ao atualizar saldo no Redis: %v", err)
 	}
-
+	mutex.Unlock()
 	return limite, saldo, false, nil
 }
 

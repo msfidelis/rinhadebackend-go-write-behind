@@ -1,5 +1,5 @@
 resource "aws_security_group" "main" {
-  name        = var.setup_prefix
+  name = var.setup_prefix
 
   ingress {
     from_port   = 9999
@@ -8,7 +8,13 @@ resource "aws_security_group" "main" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Regra de saída (egress): permite todo o tráfego de saída
+  ingress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
